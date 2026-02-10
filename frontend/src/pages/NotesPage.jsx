@@ -55,22 +55,30 @@ const NotesPage = () => {
         }
     };
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const tagsArray = formData.tags.split(',').map((tag) => tag.trim()).filter(t => t);
         const data = { ...formData, tags: tagsArray };
 
         try {
+            setIsSubmitting(true);
             if (editingNote) {
                 const res = await api.put(`/notes/${editingNote._id}`, data);
                 setNotes(notes.map((note) => (note._id === editingNote._id ? res.data : note)));
             } else {
+                console.log('Sending POST request to /notes with data:', data);
                 const res = await api.post('/notes', data);
                 setNotes([res.data, ...notes]);
             }
             closeModal();
         } catch (err) {
             console.error('Error saving note:', err);
+            const errMsg = err.response?.data?.message || err.message || 'Unknown error';
+            alert(`Error saving note: ${errMsg}\nCheck console for details.`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 

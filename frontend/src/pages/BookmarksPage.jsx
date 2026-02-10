@@ -57,12 +57,15 @@ const BookmarksPage = () => {
         }
     };
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const tagsArray = formData.tags.split(',').map((tag) => tag.trim()).filter(t => t);
         const data = { ...formData, tags: tagsArray };
 
         try {
+            setIsSubmitting(true);
             if (editingBookmark) {
                 const res = await api.put(`/bookmarks/${editingBookmark._id}`, data);
                 setBookmarks(bookmarks.map((b) => (b._id === editingBookmark._id ? res.data : b)));
@@ -73,7 +76,10 @@ const BookmarksPage = () => {
             closeModal();
         } catch (err) {
             console.error('Error saving bookmark:', err);
-            alert('Failed to save bookmark. Please check the URL.');
+            const errMsg = err.response?.data?.message || err.message || 'Unknown error';
+            alert(`Failed to save bookmark: ${errMsg}\nCheck console for details.`);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -194,9 +200,11 @@ const BookmarksPage = () => {
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium bg-secondary hover:bg-pink-600 text-white rounded-lg transition-colors shadow-lg shadow-secondary/20"
+                            disabled={isSubmitting}
+                            className={`px-4 py-2 text-sm font-medium bg-secondary hover:bg-pink-600 text-white rounded-lg transition-colors shadow-lg shadow-secondary/20 flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            {editingBookmark ? 'Save Changes' : 'Save Bookmark'}
+                            {isSubmitting && <Loader2 className="animate-spin h-4 w-4" />}
+                            {isSubmitting ? 'Saving...' : (editingBookmark ? 'Save Changes' : 'Save Bookmark')}
                         </button>
                     </div>
                 </form>
