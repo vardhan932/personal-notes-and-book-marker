@@ -49,9 +49,11 @@ app.get('/', (req, res) => {
 });
 
 // Import Routes
+const authRouter = require('./routes/auth');
 const notesRouter = require('./routes/notes');
 const bookmarksRouter = require('./routes/bookmarks');
 
+app.use('/api/auth', authRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/bookmarks', bookmarksRouter);
 

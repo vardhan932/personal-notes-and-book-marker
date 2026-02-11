@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const Note = require('../models/Note');
+const authMiddleware = require('../middleware/auth');
+
+// Apply auth middleware to all routes
+router.use(authMiddleware);
 
 // GET all notes (optional search and tag filter)
 router.get('/', async (req, res) => {
     try {
         const { q, tags, deleted } = req.query;
-        let query = {};
+        let query = { userId: req.userId };
 
         // By default, exclude deleted notes unless explicitly requested
         if (deleted === 'true') {
@@ -45,7 +49,8 @@ router.post('/', async (req, res) => {
         title: req.body.title,
         content: req.body.content,
         tags: req.body.tags,
-        isFavorite: req.body.isFavorite
+        isFavorite: req.body.isFavorite,
+        userId: req.userId
     });
 
     try {

@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Bookmark = require('../models/Bookmark');
+const authMiddleware = require('../middleware/auth');
+
+// Apply auth middleware to all routes
+router.use(authMiddleware);
 // Bonus: Title fetching (placeholder, can use 'axios' and 'cheerio' later)
 // const axios = require('axios');
 // const cheerio = require('cheerio');
@@ -9,7 +13,7 @@ const Bookmark = require('../models/Bookmark');
 router.get('/', async (req, res) => {
     try {
         const { q, tags, deleted } = req.query;
-        let query = {};
+        let query = { userId: req.userId };
 
         // By default, exclude deleted bookmarks unless explicitly requested
         if (deleted === 'true') {
@@ -62,7 +66,8 @@ router.post('/', async (req, res) => {
         title: req.body.title || req.body.url, // Default title to URL if empty
         description: req.body.description,
         tags: req.body.tags,
-        isFavorite: req.body.isFavorite
+        isFavorite: req.body.isFavorite,
+        userId: req.userId
     });
 
     try {
