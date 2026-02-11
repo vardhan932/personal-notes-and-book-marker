@@ -50,6 +50,7 @@ router.post('/', async (req, res) => {
         content: req.body.content,
         tags: req.body.tags,
         isFavorite: req.body.isFavorite,
+        reminderDate: req.body.reminderDate,
         userId: req.userId
     });
 
@@ -75,6 +76,9 @@ router.put('/:id', getNote, async (req, res) => {
     if (req.body.isFavorite != null) {
         res.note.isFavorite = req.body.isFavorite;
     }
+    if (req.body.reminderDate !== undefined) {
+        res.note.reminderDate = req.body.reminderDate;
+    }
 
     try {
         const updatedNote = await res.note.save();
@@ -91,6 +95,25 @@ router.delete('/:id', getNote, async (req, res) => {
         res.note.deletedAt = new Date();
         await res.note.save();
         res.json({ message: 'Note moved to recycle bin' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// BULK DELETE notes (soft delete)
+router.post('/bulk-delete', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) {
+            return res.status(400).json({ message: 'Invalid IDs provided' });
+        }
+
+        await Note.updateMany(
+            { _id: { $in: ids }, userId: req.userId },
+            { $set: { isDeleted: true, deletedAt: new Date() } }
+        );
+
+        res.json({ message: `${ids.length} notes moved to recycle bin` });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

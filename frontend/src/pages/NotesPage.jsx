@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import NoteCard from '../components/NoteCard';
 import Modal from '../components/Modal';
-import { Plus, Search, Loader2, Bell, Calendar } from 'lucide-react';
+import { Plus, Search, Loader2, Bell, Calendar, Trash2, CheckSquare, Square } from 'lucide-react';
 import { requestNotificationPermission, scheduleAllNotifications, showNotification } from '../utils/notifications';
 
 const NotesPage = () => {
@@ -11,6 +11,8 @@ const NotesPage = () => {
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -65,6 +67,34 @@ const NotesPage = () => {
                 setNotes(notes.filter((note) => note._id !== id));
             } catch (err) {
                 console.error('Error deleting note:', err);
+            }
+        }
+    };
+
+    const handleSelect = (id) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === notes.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(notes.map(n => n._id));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (window.confirm(`Are you sure you want to delete ${selectedIds.length} notes?`)) {
+            try {
+                await api.post('/notes/bulk-delete', { ids: selectedIds });
+                setNotes(notes.filter(note => !selectedIds.includes(note._id)));
+                setSelectedIds([]);
+                setIsSelectionMode(false);
+            } catch (err) {
+                console.error('Error in bulk delete:', err);
+                alert('Failed to delete some notes.');
             }
         }
     };
@@ -137,6 +167,44 @@ const NotesPage = () => {
                 </div>
             </div>
 
+            {/* Bulk Actions Bar */}
+            {(notes.length > 0) && (
+                <div className="flex items-center justify-between bg-surface/50 p-3 rounded-lg border border-gray-700/50">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => {
+                                setIsSelectionMode(!isSelectionMode);
+                                if (isSelectionMode) setSelectedIds([]);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${isSelectionMode ? 'bg-primary/20 text-primary border border-primary/30' : 'text-gray-400 hover:bg-gray-700'
+                                }`}
+                        >
+                            {isSelectionMode ? <CheckSquare size={16} /> : <Square size={16} />}
+                            {isSelectionMode ? 'Exit Selection' : 'Select Multiple'}
+                        </button>
+
+                        {isSelectionMode && (
+                            <button
+                                onClick={handleSelectAll}
+                                className="text-sm text-gray-400 hover:text-white transition-colors"
+                            >
+                                {selectedIds.length === notes.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                        )}
+                    </div>
+
+                    {selectedIds.length > 0 && (
+                        <button
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-1.5 rounded-lg text-sm font-medium border border-red-500/20 transition-all"
+                        >
+                            <Trash2 size={16} />
+                            Delete Selected ({selectedIds.length})
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* Grid */}
             {loading ? (
                 <div className="flex justify-center py-20">
@@ -157,6 +225,9 @@ const NotesPage = () => {
                             note={note}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
+                            isSelected={selectedIds.includes(note._id)}
+                            onSelect={handleSelect}
+                            isSelectionMode={isSelectionMode}
                         />
                     ))}
                 </div>

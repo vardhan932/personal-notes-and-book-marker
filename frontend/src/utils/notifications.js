@@ -21,7 +21,7 @@ export const requestNotificationPermission = async () => {
     return false;
 };
 
-export const showNotification = async (title, body) => {
+export const showNotification = async (title, body, tag = 'linkvault-test') => {
     // Check for Secure Context (HTTPS or localhost)
     if (!window.isSecureContext) {
         console.error("Notifications require a secure context (HTTPS or localhost)");
@@ -35,7 +35,7 @@ export const showNotification = async (title, body) => {
         icon: '/vite.svg',
         badge: '/vite.svg',
         vibrate: [200, 100, 200],
-        tag: 'linkvault-reminder',
+        tag: tag,
         renotify: true
     };
 
@@ -76,7 +76,8 @@ export const scheduleNotification = (note) => {
         const timerId = setTimeout(() => {
             showNotification(
                 `🔔 Reminder: ${note.title}`,
-                note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '')
+                note.content.substring(0, 100) + (note.content.length > 100 ? '...' : ''),
+                `note-${note._id}`
             );
             scheduledTimers.delete(note._id);
         }, delay);

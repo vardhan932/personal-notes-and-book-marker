@@ -116,6 +116,25 @@ router.delete('/:id', getBookmark, async (req, res) => {
     }
 });
 
+// BULK DELETE bookmarks (soft delete)
+router.post('/bulk-delete', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) {
+            return res.status(400).json({ message: 'Invalid IDs provided' });
+        }
+
+        await Bookmark.updateMany(
+            { _id: { $in: ids }, userId: req.userId },
+            { $set: { isDeleted: true, deletedAt: new Date() } }
+        );
+
+        res.json({ message: `${ids.length} bookmarks moved to recycle bin` });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // RESTORE bookmark from recycle bin
 router.patch('/:id/restore', getBookmark, async (req, res) => {
     try {
