@@ -3,7 +3,7 @@ import api from '../api';
 import NoteCard from '../components/NoteCard';
 import Modal from '../components/Modal';
 import { Plus, Search, Loader2, Bell, Calendar } from 'lucide-react';
-import { requestNotificationPermission, scheduleAllNotifications } from '../utils/notifications';
+import { requestNotificationPermission, scheduleAllNotifications, showNotification } from '../utils/notifications';
 
 const NotesPage = () => {
     const [notes, setNotes] = useState([]);
@@ -120,6 +120,13 @@ const NotesPage = () => {
                             className="w-full pl-10 pr-4 py-2 bg-background border border-gray-700 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm"
                         />
                     </div>
+                    <button
+                        onClick={() => showNotification('Test Notification', 'It works! This is a test notification from LinkVault.')}
+                        className="flex items-center gap-2 bg-surface hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors border border-gray-700"
+                    >
+                        <Bell size={18} />
+                        <span className="hidden sm:inline">Test Notice</span>
+                    </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 bg-primary hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-primary/20"
