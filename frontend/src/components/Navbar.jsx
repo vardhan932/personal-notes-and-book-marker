@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Notebook, Bookmark } from 'lucide-react';
+import { Notebook, Bookmark, Trash2 } from 'lucide-react';
 
 const Navbar = () => {
     const location = useLocation();
@@ -22,17 +22,24 @@ const Navbar = () => {
                     <div className="flex space-x-4">
                         <Link
                             to="/notes"
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 \${isActive('/notes')}`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${isActive('/notes')}`}
                         >
                             <Notebook className="w-4 h-4" />
                             Notes
                         </Link>
                         <Link
                             to="/bookmarks"
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 \${isActive('/bookmarks')}`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${isActive('/bookmarks')}`}
                         >
                             <Bookmark className="w-4 h-4" />
                             Bookmarks
+                        </Link>
+                        <Link
+                            to="/recycle-bin"
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${isActive('/recycle-bin')}`}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Recycle Bin
                         </Link>
                     </div>
                 </div>

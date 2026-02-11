@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import NotesPage from './pages/NotesPage';
 import BookmarksPage from './pages/BookmarksPage';
+import RecycleBinPage from './pages/RecycleBinPage';
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/notes" replace />} />
                     <Route path="/notes" element={<NotesPage />} />
                     <Route path="/bookmarks" element={<BookmarksPage />} />
+                    <Route path="/recycle-bin" element={<RecycleBinPage />} />
                 </Routes>
             </div>
         </div>

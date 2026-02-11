@@ -8,8 +8,15 @@ const Bookmark = require('../models/Bookmark');
 // GET all bookmarks
 router.get('/', async (req, res) => {
     try {
-        const { q, tags } = req.query;
+        const { q, tags, deleted } = req.query;
         let query = {};
+
+        // By default, exclude deleted bookmarks unless explicitly requested
+        if (deleted === 'true') {
+            query.isDeleted = true;
+        } else {
+            query.isDeleted = { $ne: true };
+        }
 
         if (q) {
             query.$or = [
@@ -92,11 +99,35 @@ router.put('/:id', getBookmark, async (req, res) => {
     }
 });
 
-// DELETE bookmark
+// DELETE bookmark (soft delete)
 router.delete('/:id', getBookmark, async (req, res) => {
     try {
+        res.bookmark.isDeleted = true;
+        res.bookmark.deletedAt = new Date();
+        await res.bookmark.save();
+        res.json({ message: 'Bookmark moved to recycle bin' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// RESTORE bookmark from recycle bin
+router.patch('/:id/restore', getBookmark, async (req, res) => {
+    try {
+        res.bookmark.isDeleted = false;
+        res.bookmark.deletedAt = null;
+        await res.bookmark.save();
+        res.json({ message: 'Bookmark restored successfully', bookmark: res.bookmark });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PERMANENT DELETE bookmark
+router.delete('/:id/permanent', getBookmark, async (req, res) => {
+    try {
         await res.bookmark.deleteOne();
-        res.json({ message: 'Bookmark deleted' });
+        res.json({ message: 'Bookmark permanently deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

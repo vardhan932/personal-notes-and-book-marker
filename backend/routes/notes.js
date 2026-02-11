@@ -5,8 +5,15 @@ const Note = require('../models/Note');
 // GET all notes (optional search and tag filter)
 router.get('/', async (req, res) => {
     try {
-        const { q, tags } = req.query;
+        const { q, tags, deleted } = req.query;
         let query = {};
+
+        // By default, exclude deleted notes unless explicitly requested
+        if (deleted === 'true') {
+            query.isDeleted = true;
+        } else {
+            query.isDeleted = { $ne: true };
+        }
 
         if (q) {
             query.$or = [
@@ -72,11 +79,35 @@ router.put('/:id', getNote, async (req, res) => {
     }
 });
 
-// DELETE note
+// DELETE note (soft delete)
 router.delete('/:id', getNote, async (req, res) => {
     try {
+        res.note.isDeleted = true;
+        res.note.deletedAt = new Date();
+        await res.note.save();
+        res.json({ message: 'Note moved to recycle bin' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// RESTORE note from recycle bin
+router.patch('/:id/restore', getNote, async (req, res) => {
+    try {
+        res.note.isDeleted = false;
+        res.note.deletedAt = null;
+        await res.note.save();
+        res.json({ message: 'Note restored successfully', note: res.note });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PERMANENT DELETE note
+router.delete('/:id/permanent', getNote, async (req, res) => {
+    try {
         await res.note.deleteOne();
-        res.json({ message: 'Note deleted' });
+        res.json({ message: 'Note permanently deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
