@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, Tag, Calendar } from 'lucide-react';
+import { Edit2, Trash2, Tag, Calendar, Bell } from 'lucide-react';
 
 const NoteCard = ({ note, onEdit, onDelete }) => {
     return (
@@ -25,6 +25,14 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
             <p className="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-wrap">
                 {note.content}
             </p>
+
+            {/* Reminder Indicator */}
+            {note.reminderDate && new Date(note.reminderDate) > new Date() && (
+                <div className="mb-3 flex items-center gap-2 text-xs bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-3 py-2 rounded-lg">
+                    <Bell size={14} className="animate-pulse" />
+                    <span>Reminder: {new Date(note.reminderDate).toLocaleString()}</span>
+                </div>
+            )}
 
             <div className="flex items-center justify-between mt-auto">
                 <div className="flex flex-wrap gap-2">

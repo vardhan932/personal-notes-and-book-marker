@@ -23,6 +23,10 @@ const noteSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    reminderDate: {
+        type: Date,
+        default: null
+    },
     isDeleted: {
         type: Boolean,
         default: false

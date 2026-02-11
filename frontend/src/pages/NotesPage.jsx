@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import NoteCard from '../components/NoteCard';
 import Modal from '../components/Modal';
-import { Plus, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, Bell, Calendar } from 'lucide-react';
+import { requestNotificationPermission, scheduleAllNotifications } from '../utils/notifications';
 
 const NotesPage = () => {
     const [notes, setNotes] = useState([]);
@@ -16,11 +17,23 @@ const NotesPage = () => {
         title: '',
         content: '',
         tags: '',
+        reminderDate: ''
     });
 
     useEffect(() => {
         fetchNotes();
     }, [search]);
+
+    // Request notification permission and schedule notifications
+    useEffect(() => {
+        requestNotificationPermission();
+    }, []);
+
+    useEffect(() => {
+        if (notes.length > 0) {
+            scheduleAllNotifications(notes);
+        }
+    }, [notes]);
 
     const fetchNotes = async () => {
         try {
@@ -40,6 +53,7 @@ const NotesPage = () => {
             title: note.title,
             content: note.content,
             tags: note.tags ? note.tags.join(', ') : '',
+            reminderDate: note.reminderDate ? new Date(note.reminderDate).toISOString().slice(0, 16) : ''
         });
         setIsModalOpen(true);
     };
@@ -85,7 +99,7 @@ const NotesPage = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setEditingNote(null);
-        setFormData({ title: '', content: '', tags: '' });
+        setFormData({ title: '', content: '', tags: '', reminderDate: '' });
     };
 
     return (
@@ -180,6 +194,31 @@ const NotesPage = () => {
                             placeholder="work, idea, important"
                         />
                     </div>
+
+                    {/* Reminder Date/Time */}
+                    <div>
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                            <Bell className="w-4 h-4 text-yellow-400" />
+                            Set Reminder (Optional)
+                        </label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <input
+                                type="datetime-local"
+                                value={formData.reminderDate}
+                                onChange={(e) => setFormData({ ...formData, reminderDate: e.target.value })}
+                                className="w-full pl-10 pr-4 py-2.5 bg-background border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                            />
+                        </div>
+                        {formData.reminderDate && (
+                            <p className="text-xs text-yellow-400 mt-2 flex items-center gap-1">
+                                <Bell className="w-3 h-3" />
+                                You'll be notified on {new Date(formData.reminderDate).toLocaleString()}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Buttons */}
                     <div className="pt-2 flex justify-end gap-3">
                         <button
                             type="button"
